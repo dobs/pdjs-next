@@ -92,7 +92,7 @@ pd.get('/incidents')
   .catch(console.error);
 
 // Similarly, for `post`, `put`, `patch` and `delete`.
-pd.post('/incidents', data: { ... }).then(...)
+pd.post('/incidents', { data: { ... } }).then(...)
 
 // Calling the returned function with a `res` or `url` will also send it.
 pd({
