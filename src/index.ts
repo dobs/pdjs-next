@@ -1,4 +1,3 @@
-import {triggerAsyncId} from 'async_hooks';
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 
 const VERSION = '0.0.1';
@@ -93,7 +92,8 @@ export default class PagerDuty {
   }
 
   event(params: EventParams): Promise<AxiosResponse<any>> {
-    return event(params);
+    const {token, ...rest} = this.params;
+    return event({...rest, ...params});
   }
 }
 

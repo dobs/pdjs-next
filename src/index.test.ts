@@ -2,13 +2,15 @@ import * as moxios from 'moxios';
 import {spy} from 'sinon';
 import {api, event} from './index';
 
-beforeEach(() => {});
+beforeEach(() => {
+  moxios.install();
+});
 
-afterEach(() => {});
+afterEach(() => {
+  moxios.uninstall();
+});
 
 test('API calls return JSON for basic API calls', async done => {
-  moxios.install();
-
   let onFulfilled = spy();
 
   api({token: 'someToken1234567890', res: '/incidents'}).then(onFulfilled);
@@ -46,13 +48,9 @@ test('API calls return JSON for basic API calls', async done => {
 
     done();
   });
-
-  moxios.uninstall();
 });
 
 test('API calls use data in place of params when provided on GET requests', async done => {
-  moxios.install();
-
   let onFulfilled = spy();
 
   api({
@@ -78,13 +76,9 @@ test('API calls use data in place of params when provided on GET requests', asyn
 
     done();
   });
-
-  moxios.uninstall();
 });
 
 test('Events API properly passes Events V1 requests', async done => {
-  moxios.install();
-
   let onFulfilled = spy();
 
   event({
@@ -126,18 +120,14 @@ test('Events API properly passes Events V1 requests', async done => {
 
     done();
   });
-
-  moxios.uninstall();
 });
 
 test('Events API properly passes Events V2 requests', async done => {
-  moxios.install();
-
   let onFulfilled = spy();
 
   event({
     data: {
-      routing_key: '791695b5cdea40bfa2a710673888f520',
+      routing_key: 'someRoutingKeybfa2a710673888f520',
       event_action: 'trigger',
       dedup_key: 'test_incident_2_88f520',
       payload: {
@@ -175,18 +165,14 @@ test('Events API properly passes Events V2 requests', async done => {
 
     done();
   });
-
-  moxios.uninstall();
 });
 
 test('Events API properly passes Events V2 requests with images/links/details', async done => {
-  moxios.install();
-
   let onFulfilled = spy();
 
   event({
     data: {
-      routing_key: '791695b5cdea40bfa2a710673888f520',
+      routing_key: 'someRoutingKeybfa2a710673888f520',
       event_action: 'trigger',
       dedup_key: 'test_incident_3_88f520',
       payload: {
@@ -237,6 +223,4 @@ test('Events API properly passes Events V2 requests with images/links/details', 
 
     done();
   });
-
-  moxios.uninstall();
 });
