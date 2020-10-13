@@ -30,8 +30,8 @@ export interface URLParams extends BaseParams {
 
 export type APIParams = BaseParams | ResourceParams | URLParams;
 
-export function api(params: BaseParams): Partial;
 export function api(params: ResourceParams | URLParams): APIPromise;
+export function api(params: BaseParams): Partial;
 export function api(params: any): any {
   if (!params.res && !params.url) {
     const partialParams = params;
