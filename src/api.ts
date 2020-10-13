@@ -21,7 +21,7 @@ export interface BaseParams extends CommonParams {
 }
 
 export interface ResourceParams extends BaseParams {
-  res?: string;
+  res: string;
 }
 
 export interface URLParams extends BaseParams {
