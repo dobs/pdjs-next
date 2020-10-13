@@ -1,0 +1,38 @@
+{
+  "name": "pdjs-next",
+  "version": "0.0.1",
+  "description": "A new simple JavaScript wrapper for the PagerDuty API",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "files": [
+    "build/src"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [],
+  "scripts": {
+    "test": "jest",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.14",
+    "@types/node": "^13.11.1",
+    "gts": "^3.0.0",
+    "jest": "^26.5.2",
+    "moxios": "^0.4.0",
+    "sinon": "^9.2.0",
+    "ts-jest": "^26.4.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@types/moxios": "^0.4.9",
+    "@types/sinon": "^9.0.8",
+    "axios": "^0.19.2"
+  },
+  "engines": {
+    "node": ">=8.3.0"
+  }
+}
