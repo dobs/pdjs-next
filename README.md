@@ -79,3 +79,27 @@ event({
 ```
 
 For convenience each function accepts and passes through all `AxiosRequestConfig` attributes.
+
+API calls also support partial application, which exposes some convenience methods:
+
+```javascript
+import {api} from 'pdjs-next';
+
+const pd = api({token: 'someToken1234567890'})
+
+pd.get('/incidents')
+  .then(response => console.log(response.data))
+  .catch(console.error);
+
+// Similarly, for `post`, `put`, `patch` and `delete`.
+pd.post('/incidents', data: { ... }).then(...)
+
+// Calling the returned function with a `res` or `url` will also send it.
+pd({
+  method: 'post',
+  res: '/incidents',
+  data: {
+    ...
+  }
+}).then(...)
+```
