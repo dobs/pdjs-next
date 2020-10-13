@@ -79,30 +79,3 @@ event({
 ```
 
 For convenience each function accepts and passes through all `AxiosRequestConfig` attributes.
-
-`pdjs-next` also provides a simple helper class similar to `pdjs`'s `PDJSobj`:
-
-```javascript
-import PagerDuty from `pdjs-next`;
-
-const pd = new PagerDuty({token: 'someToken1234567890', server: 'custom.pagerduty.com'})
-
-pd.api({res: '/incidents'})
-  .then(response => console.log(response.data))
-  .catch(console.error)
-
-pd.event({
-  data: {
-    routing_key: '791695b5cdea40bfa2a710673888f520',
-    event_action: 'trigger',
-    dedup_key: 'test_incident_2_88f520',
-    payload: {
-      summary: 'Test Event V2',
-      source: 'test-source',
-      severity: 'error',
-    },
-  },
-})
-  .then(console.log)
-  .catch(console.error)
-```
