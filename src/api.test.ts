@@ -93,7 +93,9 @@ test('API calls support partial application with res', async done => {
 test('API calls support partial application with url', async done => {
   let onFulfilled = spy();
 
-  api({token: 'someToken1234567890'})({url: 'https://api.pagerduty.com/incidents'}).then(onFulfilled);
+  api({token: 'someToken1234567890'})({
+    url: 'https://api.pagerduty.com/incidents',
+  }).then(onFulfilled);
 
   moxios.wait(async () => {
     let request = moxios.requests.mostRecent();

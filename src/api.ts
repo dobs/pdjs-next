@@ -63,12 +63,11 @@ export function api(params: any): any {
     url: config.url ? config.url : res,
     baseURL: config.url ? undefined : `https://${server}/`,
     ...config,
-  };
-
-  config.headers = {
-    Accept: `application/vnd.pagerduty+json;version=${version}`,
-    Authorization: `Token token=${token!}`,
-    ...config.headers,
+    headers: {
+      Accept: `application/vnd.pagerduty+json;version=${version}`,
+      Authorization: `Token token=${token!}`,
+      ...config.headers,
+    },
   };
 
   // Allow `data` for `params` for requests without bodies.
