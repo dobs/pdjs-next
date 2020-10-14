@@ -21,11 +21,11 @@ function api(params) {
         url: config.url ? config.url : res,
         baseURL: config.url ? undefined : `https://${server}/`,
         ...config,
-    };
-    config.headers = {
-        Accept: `application/vnd.pagerduty+json;version=${version}`,
-        Authorization: `Token token=${token}`,
-        ...config.headers,
+        headers: {
+            Accept: `application/vnd.pagerduty+json;version=${version}`,
+            Authorization: `Token token=${token}`,
+            ...config.headers,
+        },
     };
     // Allow `data` for `params` for requests without bodies.
     if (!['PUT', 'POST', 'DELETE', 'PATCH'].includes((_b = (_a = config.method) === null || _a === void 0 ? void 0 : _a.toUpperCase()) !== null && _b !== void 0 ? _b : 'GET')) {

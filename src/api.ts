@@ -1,11 +1,14 @@
+import { Method } from 'axios';
 import {request, CommonParams, APIPromise} from './common';
 
 export interface ShorthandFunc {
-  (res: string, params?: APIParams): any;
+  (res: string, params?: APIParams): APIPromise;
 }
 
 export interface Partial {
-  (params: APIParams): any;
+  (params: ResourceParams | URLParams): APIPromise;
+  (params: BaseParams): Partial;
+  (params: any): APIPromise | Partial;
   get: ShorthandFunc;
   post: ShorthandFunc;
   put: ShorthandFunc;
@@ -15,7 +18,6 @@ export interface Partial {
 
 export interface BaseParams extends CommonParams {
   token?: string;
-  data?: object;
   server?: string;
   version?: number;
 }
@@ -32,13 +34,13 @@ export type APIParams = BaseParams | ResourceParams | URLParams;
 
 export function api(params: ResourceParams | URLParams): APIPromise;
 export function api(params: BaseParams): Partial;
-export function api(params: any): any {
+export function api(params: any): APIPromise | Partial {
   if (!params.res && !params.url) {
     const partialParams = params;
     const partial = ((params: APIParams) =>
       api({...partialParams, ...params})) as Partial;
 
-    const shorthand = (method: string) => (res: string, params?: APIParams) =>
+    const shorthand = (method: Method) => (res: string, params?: APIParams) =>
       api({res, method, ...partialParams, ...params});
 
     partial.get = shorthand('get');

@@ -1,6 +1,32 @@
 import * as moxios from 'moxios';
 import {spy} from 'sinon';
+import {acknowledge, Action, Severity} from './events';
 import {event} from './index';
+
+const eventPayloadV1 = {
+  data: {
+    service_key: 'someServiceKey04922192cf92f43a28',
+    incident_key: 'test_incident_1_f43a28',
+    event_type: <Action>'trigger',
+    description: 'Test Event V1',
+    details: {
+      foo: 'bar',
+    },
+  },
+};
+
+const eventPayloadV2 = {
+  data: {
+    routing_key: 'someRoutingKeybfa2a710673888f520',
+    event_action: <Action>'trigger',
+    dedup_key: 'test_incident_2_88f520',
+    payload: {
+      summary: 'Test Event V2',
+      source: 'test-source',
+      severity: <Severity>'error',
+    },
+  },
+};
 
 beforeEach(() => {
   moxios.install();
@@ -11,96 +37,67 @@ afterEach(() => {
 });
 
 test('Events API properly passes Events V1 requests', async done => {
-  let onFulfilled = spy();
-
-  event({
+  const data = {
     data: {
-      service_key: 'someServiceKey04922192cf92f43a28',
-      incident_key: 'test_incident_1_f43a28',
-      event_type: 'trigger',
-      description: 'Test Event V1',
-      details: {
-        foo: 'bar',
-      },
+      status: 'success',
+      message: 'Event processed',
+      incident_key: 'test_incident_1_406ad6',
     },
-  }).then(onFulfilled);
+  };
 
-  moxios.wait(async () => {
-    let request = moxios.requests.mostRecent();
-
-    const data = {
-      data: {
-        status: 'success',
-        message: 'Event processed',
-        incident_key: 'test_incident_1_406ad6',
-      },
-    };
-
-    await request.respondWith({
+  moxios.stubRequest(
+    'https://events.pagerduty.com/generic/2010-04-15/create_event.json',
+    {
       status: 200,
       response: data,
-    });
+    }
+  );
 
-    expect(onFulfilled.called).toBeTruthy();
-
-    const response = onFulfilled.getCall(0).args[0];
-    expect(response.request.url).toEqual(
+  event(eventPayloadV1).then(resp => {
+    expect(resp.request.url).toEqual(
       'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
     );
-    expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(response.data).toEqual(data);
-
+    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+    expect(resp.data).toEqual(data);
     done();
   });
 });
 
 test('Events API properly passes Events V2 requests', async done => {
-  let onFulfilled = spy();
-
-  event({
+  const data = {
     data: {
-      routing_key: 'someRoutingKeybfa2a710673888f520',
-      event_action: 'trigger',
+      status: 'success',
+      message: 'Event processed',
       dedup_key: 'test_incident_2_88f520',
-      payload: {
-        summary: 'Test Event V2',
-        source: 'test-source',
-        severity: 'error',
-      },
     },
-  }).then(onFulfilled);
+  };
 
-  moxios.wait(async () => {
-    let request = moxios.requests.mostRecent();
+  moxios.stubRequest('https://events.pagerduty.com/v2/enqueue', {
+    status: 200,
+    response: data,
+  });
 
-    const data = {
-      data: {
-        status: 'success',
-        message: 'Event processed',
-        dedup_key: 'test_incident_2_88f520',
-      },
-    };
-
-    await request.respondWith({
-      status: 200,
-      response: data,
-    });
-
-    expect(onFulfilled.called).toBeTruthy();
-
-    const response = onFulfilled.getCall(0).args[0];
-    expect(response.request.url).toEqual(
-      'https://events.pagerduty.com/v2/enqueue'
-    );
-    expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(response.data).toEqual(data);
-
+  event(eventPayloadV2).then(resp => {
+    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+    expect(resp.data).toEqual(data);
     done();
   });
 });
 
 test('Events API properly passes Events V2 requests with images/links/details', async done => {
-  let onFulfilled = spy();
+  const data = {
+    data: {
+      status: 'success',
+      message: 'Event processed',
+      dedup_key: 'test_incident_2_88f520',
+    },
+  };
+
+  moxios.stubRequest('https://events.pagerduty.com/v2/enqueue', {
+    status: 200,
+    response: data,
+  });
 
   event({
     data: {
@@ -126,33 +123,31 @@ test('Events API properly passes Events V2 requests with images/links/details', 
         },
       ],
     },
-  }).then(onFulfilled);
+  }).then(resp => {
+    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+    expect(resp.data).toEqual(data);
+    done();
+  });
+});
 
-  moxios.wait(async () => {
-    let request = moxios.requests.mostRecent();
+test('Events API shorthands should send corresponding events', async done => {
+  const data = {
+    data: {
+      status: 'success',
+      message: 'Event processed',
+      dedup_key: 'test_incident_2_88f520',
+    },
+  };
 
-    const data = {
-      data: {
-        status: 'success',
-        message: 'Event processed',
-        dedup_key: 'test_incident_2_88f520',
-      },
-    };
+  moxios.stubRequest('https://events.pagerduty.com/v2/enqueue', {
+    status: 200,
+    response: data,
+  });
 
-    await request.respondWith({
-      status: 200,
-      response: data,
-    });
-
-    expect(onFulfilled.called).toBeTruthy();
-
-    const response = onFulfilled.getCall(0).args[0];
-    expect(response.request.url).toEqual(
-      'https://events.pagerduty.com/v2/enqueue'
-    );
-    expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(response.data).toEqual(data);
-
+  acknowledge(eventPayloadV2).then(resp => {
+    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+    expect(resp.data).toEqual(data);
     done();
   });
 });

@@ -9,7 +9,7 @@ beforeEach(() => {
 afterEach(() => {
     moxios.uninstall();
 });
-test('API calls return JSON for basic API calls', async (done) => {
+test('API calls return JSON for basic API calls with res', async (done) => {
     let onFulfilled = sinon_1.spy();
     index_1.api({ token: 'someToken1234567890', res: '/incidents' }).then(onFulfilled);
     moxios.wait(async () => {
@@ -37,7 +37,31 @@ test('API calls return JSON for basic API calls', async (done) => {
         done();
     });
 });
-test('API calls support partial application', async (done) => {
+test('API calls return JSON for basic API calls with URL', async (done) => {
+    let onFulfilled = sinon_1.spy();
+    index_1.api({
+        token: 'someToken1234567890',
+        url: 'https://api.pagerduty.com/incidents',
+    }).then(onFulfilled);
+    moxios.wait(async () => {
+        let request = moxios.requests.mostRecent();
+        const data = {
+            data: {},
+        };
+        await request.respondWith({
+            status: 200,
+            response: data,
+        });
+        expect(onFulfilled.called).toBeTruthy();
+        const response = onFulfilled.getCall(0).args[0];
+        expect(response.request.url).toEqual('https://api.pagerduty.com/incidents');
+        expect(response.request.headers['Authorization']).toEqual('Token token=someToken1234567890');
+        expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+        expect(response.data).toEqual(data);
+        done();
+    });
+});
+test('API calls support partial application with res', async (done) => {
     let onFulfilled = sinon_1.spy();
     index_1.api({ token: 'someToken1234567890' })({ res: '/incidents' }).then(onFulfilled);
     moxios.wait(async () => {
@@ -59,6 +83,35 @@ test('API calls support partial application', async (done) => {
         const response = onFulfilled.getCall(0).args[0];
         expect(response.request.url).toEqual('/incidents');
         expect(response.request.config.baseURL).toEqual('https://api.pagerduty.com/');
+        expect(response.request.headers['Authorization']).toEqual('Token token=someToken1234567890');
+        expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+        expect(response.data).toEqual(data);
+        done();
+    });
+});
+test('API calls support partial application with url', async (done) => {
+    let onFulfilled = sinon_1.spy();
+    index_1.api({ token: 'someToken1234567890' })({
+        url: 'https://api.pagerduty.com/incidents',
+    }).then(onFulfilled);
+    moxios.wait(async () => {
+        let request = moxios.requests.mostRecent();
+        const data = {
+            data: {
+                incidents: [],
+                limit: 25,
+                offset: 0,
+                total: null,
+                more: false,
+            },
+        };
+        await request.respondWith({
+            status: 200,
+            response: data,
+        });
+        expect(onFulfilled.called).toBeTruthy();
+        const response = onFulfilled.getCall(0).args[0];
+        expect(response.request.url).toEqual('https://api.pagerduty.com/incidents');
         expect(response.request.headers['Authorization']).toEqual('Token token=someToken1234567890');
         expect(response.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
         expect(response.data).toEqual(data);

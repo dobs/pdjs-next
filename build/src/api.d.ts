@@ -12,16 +12,15 @@ export interface Partial {
 }
 export interface BaseParams extends CommonParams {
     token?: string;
-    data?: object;
     server?: string;
     version?: number;
 }
 export interface ResourceParams extends BaseParams {
-    res?: string;
+    res: string;
 }
 export interface URLParams extends BaseParams {
     url: string;
 }
 export declare type APIParams = BaseParams | ResourceParams | URLParams;
-export declare function api(params: BaseParams): Partial;
 export declare function api(params: ResourceParams | URLParams): APIPromise;
+export declare function api(params: BaseParams): Partial;

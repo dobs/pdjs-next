@@ -1,3 +1,4 @@
+import produce from 'immer';
 import {request, CommonParams, APIPromise} from './common';
 
 export type Action = 'trigger' | 'acknowledge' | 'resolve';
@@ -90,3 +91,18 @@ export function change(params: ChangeParams): APIPromise {
 function isEventsV1(params: EventParams): boolean {
   return (params.data as EventPayloadV1).service_key !== undefined;
 }
+
+const shorthand = (action: Action) => (params: EventParams): APIPromise =>
+  event(
+    produce(params, draft => {
+      if ('event_type' in draft.data) {
+        draft.data.event_type = action;
+      } else if ('event_action' in draft.data) {
+        draft.data.event_action = action;
+      }
+    })
+  );
+
+export const trigger = shorthand('trigger');
+export const acknowledge = shorthand('acknowledge');
+export const resolve = shorthand('resolve');
