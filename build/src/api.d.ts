@@ -1,9 +1,11 @@
 import { CommonParams, APIPromise } from './common';
 export interface ShorthandFunc {
-    (res: string, params?: APIParams): any;
+    (res: string, params?: APIParams): APIPromise;
 }
 export interface Partial {
-    (params: APIParams): any;
+    (params: ResourceParams | URLParams): APIPromise;
+    (params: BaseParams): Partial;
+    (params: any): APIPromise | Partial;
     get: ShorthandFunc;
     post: ShorthandFunc;
     put: ShorthandFunc;

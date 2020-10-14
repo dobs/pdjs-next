@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.change = exports.event = void 0;
+exports.resolve = exports.acknowledge = exports.trigger = exports.change = exports.event = void 0;
+const immer_1 = require("immer");
 const common_1 = require("./common");
 // async function api_all(params: APIParams) {
 // }
@@ -27,4 +28,15 @@ exports.change = change;
 function isEventsV1(params) {
     return params.data.service_key !== undefined;
 }
+const shorthand = (action) => (params) => event(immer_1.default(params, draft => {
+    if ('event_type' in draft.data) {
+        draft.data.event_type = action;
+    }
+    else if ('event_action' in draft.data) {
+        draft.data.event_action = action;
+    }
+}));
+exports.trigger = shorthand('trigger');
+exports.acknowledge = shorthand('acknowledge');
+exports.resolve = shorthand('resolve');
 //# sourceMappingURL=events.js.map
