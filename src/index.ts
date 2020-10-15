@@ -1,4 +1,4 @@
-export {api, APIParams} from './api';
+export {all, api, APIParams} from './api';
 export {
   event,
   change,

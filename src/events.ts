@@ -1,7 +1,10 @@
+import {AxiosResponse} from 'axios';
 import produce from 'immer';
-import {request, CommonParams, APIPromise} from './common';
+import {request, CommonParams} from './common';
 
 export type Action = 'trigger' | 'acknowledge' | 'resolve';
+
+export type EventPromise = Promise<AxiosResponse<any>>;
 
 export interface EventPayloadV1 {
   service_key: string;
@@ -66,7 +69,7 @@ export interface ChangeParams extends CommonParams {
 // async function api_all(params: APIParams) {
 // }
 
-export function event(params: EventParams): APIPromise {
+export function event(params: EventParams): EventPromise {
   const {server = 'events.pagerduty.com', ...config} = params;
 
   return request({
@@ -78,7 +81,7 @@ export function event(params: EventParams): APIPromise {
   });
 }
 
-export function change(params: ChangeParams): APIPromise {
+export function change(params: ChangeParams): EventPromise {
   const {server = 'events.pagerduty.com', ...config} = params;
 
   return request({
@@ -92,7 +95,7 @@ function isEventsV1(params: EventParams): boolean {
   return (params.data as EventPayloadV1).service_key !== undefined;
 }
 
-const shorthand = (action: Action) => (params: EventParams): APIPromise =>
+const shorthand = (action: Action) => (params: EventParams): EventPromise =>
   event(
     produce(params, draft => {
       if ('event_type' in draft.data) {

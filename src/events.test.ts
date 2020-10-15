@@ -1,5 +1,4 @@
 import * as moxios from 'moxios';
-import {spy} from 'sinon';
 import {acknowledge, Action, Severity} from './events';
 import {event} from './index';
 
@@ -53,14 +52,14 @@ test('Events API properly passes Events V1 requests', async done => {
     }
   );
 
-  event(eventPayloadV1).then(resp => {
-    expect(resp.request.url).toEqual(
-      'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
-    );
-    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(resp.data).toEqual(data);
-    done();
-  });
+  const resp = await event(eventPayloadV1);
+
+  expect(resp.request.url).toEqual(
+    'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
+  );
+  expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+  expect(resp.data).toEqual(data);
+  done();
 });
 
 test('Events API properly passes Events V2 requests', async done => {
@@ -77,12 +76,12 @@ test('Events API properly passes Events V2 requests', async done => {
     response: data,
   });
 
-  event(eventPayloadV2).then(resp => {
-    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
-    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(resp.data).toEqual(data);
-    done();
-  });
+  const resp = await event(eventPayloadV2);
+
+  expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+  expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+  expect(resp.data).toEqual(data);
+  done();
 });
 
 test('Events API properly passes Events V2 requests with images/links/details', async done => {
@@ -99,7 +98,7 @@ test('Events API properly passes Events V2 requests with images/links/details', 
     response: data,
   });
 
-  event({
+  const resp = await event({
     data: {
       routing_key: 'someRoutingKeybfa2a710673888f520',
       event_action: 'trigger',
@@ -123,12 +122,12 @@ test('Events API properly passes Events V2 requests with images/links/details', 
         },
       ],
     },
-  }).then(resp => {
-    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
-    expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
-    expect(resp.data).toEqual(data);
-    done();
   });
+
+  expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+  expect(resp.request.headers['User-Agent']).toMatch(/^pdjs-next.*/);
+  expect(resp.data).toEqual(data);
+  done();
 });
 
 test('Events API shorthands should send corresponding events', async done => {
@@ -145,9 +144,8 @@ test('Events API shorthands should send corresponding events', async done => {
     response: data,
   });
 
-  acknowledge(eventPayloadV2).then(resp => {
-    expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
-    expect(resp.data).toEqual(data);
-    done();
-  });
+  const resp = await acknowledge(eventPayloadV2);
+  expect(resp.request.url).toEqual('https://events.pagerduty.com/v2/enqueue');
+  expect(resp.data).toEqual(data);
+  done();
 });

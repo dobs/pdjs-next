@@ -1,5 +1,7 @@
-import { CommonParams, APIPromise } from './common';
+import { AxiosResponse } from 'axios';
+import { CommonParams } from './common';
 export declare type Action = 'trigger' | 'acknowledge' | 'resolve';
+export declare type EventPromise = Promise<AxiosResponse<any>>;
 export interface EventPayloadV1 {
     service_key: string;
     incident_key: string;
@@ -53,8 +55,8 @@ export interface ChangePayload {
 export interface ChangeParams extends CommonParams {
     data: ChangePayload;
 }
-export declare function event(params: EventParams): APIPromise;
-export declare function change(params: ChangeParams): APIPromise;
-export declare const trigger: (params: EventParams) => APIPromise;
-export declare const acknowledge: (params: EventParams) => APIPromise;
-export declare const resolve: (params: EventParams) => APIPromise;
+export declare function event(params: EventParams): EventPromise;
+export declare function change(params: ChangeParams): EventPromise;
+export declare const trigger: (params: EventParams) => EventPromise;
+export declare const acknowledge: (params: EventParams) => EventPromise;
+export declare const resolve: (params: EventParams) => EventPromise;

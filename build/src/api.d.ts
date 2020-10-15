@@ -1,11 +1,12 @@
-import { CommonParams, APIPromise } from './common';
+import { AxiosResponse } from 'axios';
+import { CommonParams } from './common';
 export interface ShorthandFunc {
     (res: string, params?: APIParams): APIPromise;
 }
 export interface Partial {
     (params: ResourceParams | URLParams): APIPromise;
     (params: BaseParams): Partial;
-    (params: any): APIPromise | Partial;
+    (params: APIParams): APIPromise | Partial;
     get: ShorthandFunc;
     post: ShorthandFunc;
     put: ShorthandFunc;
@@ -24,5 +25,10 @@ export interface URLParams extends BaseParams {
     url: string;
 }
 export declare type APIParams = BaseParams | ResourceParams | URLParams;
+export declare type APIPromise = Promise<APIResponse>;
+export interface APIResponse extends AxiosResponse<any> {
+    next?: () => APIPromise;
+}
 export declare function api(params: ResourceParams | URLParams): APIPromise;
 export declare function api(params: BaseParams): Partial;
+export declare function all(params: ResourceParams | URLParams): AsyncGenerator<APIResponse, void, unknown>;

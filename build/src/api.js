@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = void 0;
+exports.all = exports.api = void 0;
+const immer_1 = require("immer");
 const common_1 = require("./common");
 function api(params) {
     var _a, _b, _c;
+    // If the params don't include `res` or `url` treat it as a partial
+    // application.
     if (!params.res && !params.url) {
         const partialParams = params;
         const partial = ((params) => api({ ...partialParams, ...params }));
@@ -15,16 +18,16 @@ function api(params) {
         partial.delete = shorthand('delete');
         return partial;
     }
-    let { res, server = 'api.pagerduty.com', token, version = 2, ...config } = params;
-    config = {
+    const { res, server = 'api.pagerduty.com', token, version = 2, ...rest } = params;
+    const config = {
         method: 'GET',
-        url: config.url ? config.url : res,
-        baseURL: config.url ? undefined : `https://${server}/`,
-        ...config,
+        url: rest.url ? rest.url : res,
+        baseURL: rest.url ? undefined : `https://${server}/`,
+        ...rest,
         headers: {
             Accept: `application/vnd.pagerduty+json;version=${version}`,
             Authorization: `Token token=${token}`,
-            ...config.headers,
+            ...rest.headers,
         },
     };
     // Allow `data` for `params` for requests without bodies.
@@ -32,7 +35,29 @@ function api(params) {
         config.params = (_c = config.params) !== null && _c !== void 0 ? _c : config.data;
         delete config.data;
     }
-    return common_1.request(config);
+    return apiRequest(config);
 }
 exports.api = api;
+async function* all(params) {
+    let resp = await api(params);
+    yield resp;
+    while (resp.next) {
+        resp = await resp.next();
+        yield resp;
+    }
+}
+exports.all = all;
+async function apiRequest(config) {
+    const resp = (await common_1.request(config));
+    const data = resp.data;
+    if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
+        // TODO: Support cursor-based pagination.
+        const nextConfig = immer_1.default(config, draft => {
+            draft.params.limit = data.limit;
+            draft.params.offset = data.limit + data.offset;
+        });
+        resp.next = () => apiRequest(nextConfig);
+    }
+    return resp;
+}
 //# sourceMappingURL=api.js.map

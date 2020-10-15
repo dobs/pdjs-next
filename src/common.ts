@@ -2,8 +2,6 @@ import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 
 const VERSION = '0.0.1';
 
-export type APIPromise = Promise<AxiosResponse<any>>;
-
 export interface CommonParams extends AxiosRequestConfig {
   server?: string;
 }
