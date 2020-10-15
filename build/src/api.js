@@ -16,6 +16,7 @@ function api(params) {
         partial.put = shorthand('put');
         partial.patch = shorthand('patch');
         partial.delete = shorthand('delete');
+        partial.all = (params) => all(params);
         return partial;
     }
     const { res, server = 'api.pagerduty.com', token, version = 2, ...rest } = params;

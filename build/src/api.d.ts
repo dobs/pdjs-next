@@ -12,6 +12,7 @@ export interface Partial {
     put: ShorthandFunc;
     patch: ShorthandFunc;
     delete: ShorthandFunc;
+    all: (params: ResourceParams | URLParams) => any;
 }
 export interface BaseParams extends CommonParams {
     token?: string;

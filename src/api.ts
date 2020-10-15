@@ -15,6 +15,7 @@ export interface Partial {
   put: ShorthandFunc;
   patch: ShorthandFunc;
   delete: ShorthandFunc;
+  all: (params: ResourceParams | URLParams) => any;
 }
 
 export interface BaseParams extends CommonParams {
@@ -57,6 +58,8 @@ export function api(params: any): APIPromise | Partial {
     partial.put = shorthand('put');
     partial.patch = shorthand('patch');
     partial.delete = shorthand('delete');
+
+    partial.all = (params: ResourceParams | URLParams) => all(params);
 
     return partial;
   }

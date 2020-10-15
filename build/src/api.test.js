@@ -167,4 +167,45 @@ test('API `all` calls should generate requests until no more results', async (do
     expect(datum[2].offset).toEqual(2);
     done();
 });
+test('API `all` calls on partials should generate requests until no more results', async (done) => {
+    const data = {
+        incidents: [],
+        limit: 1,
+        offset: 0,
+        total: null,
+        more: true,
+    };
+    moxios.stubRequest('/incidents?limit=1', {
+        status: 200,
+        response: data,
+    });
+    moxios.stubRequest('/incidents?limit=1&offset=1', {
+        status: 200,
+        response: {
+            ...data,
+            offset: 1,
+        },
+    });
+    moxios.stubRequest('/incidents?limit=1&offset=2', {
+        status: 200,
+        response: {
+            ...data,
+            offset: 2,
+            more: false,
+        },
+    });
+    const pd = index_1.api({ token: 'someToken1234567890' });
+    const datum = [];
+    for await (const resp of pd.all({
+        res: '/incidents',
+        data: { limit: 1 },
+    })) {
+        datum.push(resp.data);
+    }
+    expect(datum.length).toEqual(3);
+    expect(datum[0].offset).toEqual(0);
+    expect(datum[1].offset).toEqual(1);
+    expect(datum[2].offset).toEqual(2);
+    done();
+});
 //# sourceMappingURL=api.test.js.map
