@@ -3,7 +3,7 @@
 An updated version of PagerDuty's [pdjs](https://github.com/PagerDuty/pdjs), with the motivation of:
 
 - Adding support for more recent PagerDuty features, such as the Events API V2 and Change Events
-- Supporting best practices, like handling retries and providing a custom User-Agent when possible.
+- Supporting best practices, like handling retries and backoff.
 - Improving support for modern JavaScript tooling.
 - Removing CoffeeScript!
 
@@ -75,7 +75,6 @@ for await (const response of all({
 }
 ```
 
-
 ### Events API
 
 Both V1 and V2 of the Events API are supported, with the version to used being based on the payload. For example, the Events API V2:
@@ -117,6 +116,24 @@ event({
 })
   .then(console.log)
   .catch(console.error);
+```
+
+### Browser
+
+A single browser-ready script file is available in [dist/pdjs.js](dist/pdjs.js). By copying that file to your project and referencing it by, for example:
+
+```html
+<script src="pdjs.js"></script>
+```
+
+You'll then be able to access all functionality under the `PagerDuty` object:
+
+```html
+<script>
+  PagerDuty.api({token: 'someToken1234567890', res: '/incidents'})
+    .then(response => console.log(response.data))
+    .catch(console.error);
+</script>
 ```
 
 ### Advanced
