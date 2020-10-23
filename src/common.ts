@@ -1,4 +1,5 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
+import {isBrowser} from 'browser-or-node';
 
 const VERSION = '0.0.1';
 
@@ -15,11 +16,16 @@ export function request(
     ...config,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'User-Agent':
-        typeof window === 'undefined'
-          ? `pdjs-next/${VERSION} (${process.version}/${process.platform})`
-          : undefined,
+      ...userAgentHeader(),
       ...config.headers,
     },
   });
+}
+
+function userAgentHeader() {
+  return isBrowser
+    ? {}
+    : {
+        'User-Agent': `pdjs-next/${VERSION} (${process.version}/${process.platform})`,
+      };
 }
