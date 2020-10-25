@@ -1,6 +1,5 @@
-import {AxiosRequestConfig, AxiosResponse, Method} from 'axios';
 import produce from 'immer';
-import {request, CommonParams} from './common';
+import {fetch, CustomInit} from './common';
 
 export interface ShorthandFunc {
   (res: string, params?: APIParams): APIPromise;
@@ -18,7 +17,8 @@ export interface Partial {
   all: (params: ResourceParams | URLParams) => any;
 }
 
-export interface BaseParams extends CommonParams {
+export interface BaseParams extends CustomInit {
+  data?: object;
   token?: string;
   server?: string;
   version?: number;
@@ -36,7 +36,8 @@ export type APIParams = BaseParams | ResourceParams | URLParams;
 
 export type APIPromise = Promise<APIResponse>;
 
-export interface APIResponse extends AxiosResponse<any> {
+export interface APIResponse extends Response {
+  data: any;
   next?: () => APIPromise;
 }
 
@@ -50,7 +51,7 @@ export function api(params: any): APIPromise | Partial {
     const partial = ((params: APIParams) =>
       api({...partialParams, ...params})) as Partial;
 
-    const shorthand = (method: Method) => (res: string, params?: APIParams) =>
+    const shorthand = (method: string) => (res: string, params?: APIParams) =>
       api({res, method, ...partialParams, ...params});
 
     partial.get = shorthand('get');
@@ -68,14 +69,15 @@ export function api(params: any): APIPromise | Partial {
     res,
     server = 'api.pagerduty.com',
     token,
+    url,
     version = 2,
+    data,
     ...rest
   } = params;
 
-  const config = {
+  // TODO: url vs. res + baseurl handling.
+  const config: CustomInit = {
     method: 'GET',
-    url: rest.url ? rest.url : res,
-    baseURL: rest.url ? undefined : `https://${server}/`,
     ...rest,
     headers: {
       Accept: `application/vnd.pagerduty+json;version=${version}`,
@@ -90,11 +92,12 @@ export function api(params: any): APIPromise | Partial {
       config.method?.toUpperCase() ?? 'GET'
     )
   ) {
-    config.params = config.params ?? config.data;
-    delete config.data;
+    config.params = config.params ?? data;
+  } else {
+    config.body = JSON.stringify(data);
   }
 
-  return apiRequest(config);
+  return apiFetch(url ?? `https://${server}/${res.replace(/\/+/, '')}`, config);
 }
 
 export async function* all(params: ResourceParams | URLParams) {
@@ -108,19 +111,22 @@ export async function* all(params: ResourceParams | URLParams) {
   }
 }
 
-async function apiRequest(config: AxiosRequestConfig): APIPromise {
-  const resp = (await request(config)) as APIResponse;
-  const data = resp.data;
+async function apiFetch(url: string, options: CustomInit): APIPromise {
+  const resp = (await fetch(url, options)) as APIResponse;
+  const data = await resp.json();
 
   if (data?.more && typeof data.offset !== undefined && data.limit) {
     // TODO: Support cursor-based pagination.
-    const nextConfig = produce(config, draft => {
+    const nextConfig = produce(options, (draft: CustomInit) => {
+      draft.params = options.params || {};
       draft.params.limit = data.limit;
       draft.params.offset = data.limit + data.offset;
     });
 
-    resp.next = () => apiRequest(nextConfig);
+    resp.next = () => apiFetch(url, nextConfig);
   }
+
+  resp.data = data;
 
   return resp;
 }

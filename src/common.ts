@@ -1,31 +1,68 @@
-import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
+import crossFetch, {Headers} from 'cross-fetch';
+
 import {isBrowser} from 'browser-or-node';
+import produce from 'immer';
 
 const VERSION = '0.0.1';
+const USER_AGENT = `pdjs-next/${VERSION} (${process.version}/${process.platform})`;
 
-export interface CommonParams extends AxiosRequestConfig {
+export interface CustomInit extends RequestInit {
+  params?: Record<string, string>;
   server?: string;
+  timeout?: number;
 }
 
-// TODO Retry and error handling.
-export function request(
-  config: AxiosRequestConfig
-): Promise<AxiosResponse<any>> {
-  return axios.request({
-    timeout: 30_000,
-    ...config,
-    headers: {
+// TODO: Retries.
+// TODO: Backoff.
+export function fetch(
+  url: string | URL,
+  init: CustomInit = {}
+): Promise<Response> {
+  const {params, timeout, ...initRest} = init;
+
+  url = new URL(url.toString());
+
+  url = applyParams(url, params);
+  init = applyTimeout(init, timeout);
+
+  return crossFetch(url.toString(), {
+    ...initRest,
+    headers: new Headers({
       'Content-Type': 'application/json; charset=utf-8',
       ...userAgentHeader(),
-      ...config.headers,
-    },
+      ...initRest.headers,
+    }),
   });
 }
 
-function userAgentHeader() {
-  return isBrowser
-    ? {}
-    : {
-        'User-Agent': `pdjs-next/${VERSION} (${process.version}/${process.platform})`,
-      };
+function userAgentHeader(): object {
+  if (isBrowser) return {};
+
+  return {
+    'User-Agent': USER_AGENT,
+  };
+}
+
+function applyParams(url: URL, params?: Record<string, string>): URL {
+  if (!params) return url;
+
+  const combinedParams = url.searchParams;
+
+  for (const key of Object.keys(params)) {
+    combinedParams.append(key, params[key]);
+  }
+
+  url.search = combinedParams.toString();
+  return url;
+}
+
+function applyTimeout(init: CustomInit, timeout?: number): CustomInit {
+  if (!timeout) return init;
+
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), timeout);
+
+  return produce(init, draft => {
+    draft.signal = controller.signal;
+  });
 }
