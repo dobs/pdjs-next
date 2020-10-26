@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolve = exports.acknowledge = exports.trigger = exports.change = exports.event = void 0;
 const immer_1 = require("immer");
 const common_1 = require("./common");
-// async function api_all(params: APIParams) {
-// }
 function event(params) {
     const { server = 'events.pagerduty.com', ...config } = params;
     return common_1.request({

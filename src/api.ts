@@ -97,33 +97,36 @@ export function api(params: any): APIPromise | Partial {
   return apiRequest(config);
 }
 
-export async function all(
+export function all(
   params: ResourceParams | URLParams
 ): Promise<APIResponse[]> {
-  let resp: APIResponse = await api(params);
-  const resps: APIResponse[] = [resp];
-
-  while (resp.next) {
-    resp = await resp.next();
-    resps.push(resp);
-  }
-
-  return resps;
+  return api(params).then(resp => allInner([resp]));
 }
 
-async function apiRequest(config: AxiosRequestConfig): APIPromise {
-  const resp = (await request(config)) as APIResponse;
-  const data = resp.data;
+function allInner(resps: APIResponse[]): Promise<APIResponse[]> {
+  const resp = resps[resps.length - 1];
 
-  if (data?.more && typeof data.offset !== undefined && data.limit) {
-    // TODO: Support cursor-based pagination.
-    const nextConfig = produce(config, draft => {
-      draft.params.limit = data.limit;
-      draft.params.offset = data.limit + data.offset;
-    });
-
-    resp.next = () => apiRequest(nextConfig);
+  if (!resp.next) {
+    return Promise.resolve(resps);
   }
 
-  return resp;
+  return resp.next().then(resp => allInner(resps.concat([resp])));
+}
+
+function apiRequest(config: AxiosRequestConfig): APIPromise {
+  return request(config).then((resp: APIResponse) => {
+    const data = resp.data;
+
+    if (data?.more && typeof data.offset !== undefined && data.limit) {
+      // TODO: Support cursor-based pagination.
+      const nextConfig = produce(config, draft => {
+        draft.params.limit = data.limit;
+        draft.params.offset = data.limit + data.offset;
+      });
+
+      resp.next = () => apiRequest(nextConfig);
+    }
+
+    return resp;
+  });
 }

@@ -39,27 +39,29 @@ function api(params) {
     return apiRequest(config);
 }
 exports.api = api;
-async function all(params) {
-    let resp = await api(params);
-    const resps = [await resp];
-    while (resp.next) {
-        resp = await resp.next();
-        resps.push(resp);
-    }
-    return resps;
+function all(params) {
+    return api(params).then(resp => allInner([resp]));
 }
 exports.all = all;
-async function apiRequest(config) {
-    const resp = (await common_1.request(config));
-    const data = resp.data;
-    if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
-        // TODO: Support cursor-based pagination.
-        const nextConfig = immer_1.default(config, draft => {
-            draft.params.limit = data.limit;
-            draft.params.offset = data.limit + data.offset;
-        });
-        resp.next = () => apiRequest(nextConfig);
+function allInner(resps) {
+    const resp = resps[resps.length - 1];
+    if (!resp.next) {
+        return Promise.resolve(resps);
     }
-    return resp;
+    return resp.next().then(resp => allInner(resps.concat([resp])));
+}
+function apiRequest(config) {
+    return common_1.request(config).then((resp) => {
+        const data = resp.data;
+        if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
+            // TODO: Support cursor-based pagination.
+            const nextConfig = immer_1.default(config, draft => {
+                draft.params.limit = data.limit;
+                draft.params.offset = data.limit + data.offset;
+            });
+            resp.next = () => apiRequest(nextConfig);
+        }
+        return resp;
+    });
 }
 //# sourceMappingURL=api.js.map

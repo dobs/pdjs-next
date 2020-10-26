@@ -2,6 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: './src/index.ts',
+  devtool: 'source-map',
   output: {
     filename: 'pdjs.js',
     library: 'PagerDuty',
@@ -18,6 +19,6 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: ['.tsx', '.ts', '.js'],
   },
 };

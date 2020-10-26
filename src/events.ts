@@ -66,9 +66,6 @@ export interface ChangeParams extends CommonParams {
   data: ChangePayload;
 }
 
-// async function api_all(params: APIParams) {
-// }
-
 export function event(params: EventParams): EventPromise {
   const {server = 'events.pagerduty.com', ...config} = params;
 
