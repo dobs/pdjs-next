@@ -193,20 +193,16 @@ test('API `all` calls should generate requests until no more results', async don
     },
   });
 
-  const datum = [];
-  for await (const resp of all({
+  const resps = await all({
     token: 'someToken1234567890',
     res: '/incidents',
     data: {limit: 1},
-  })) {
-    datum.push(resp.data);
-  }
+  });
 
-  expect(datum.length).toEqual(3);
-  expect(datum[0].offset).toEqual(0);
-  expect(datum[1].offset).toEqual(1);
-  expect(datum[2].offset).toEqual(2);
-
+  expect(resps.length).toEqual(3);
+  expect(resps[0].data.offset).toEqual(0);
+  expect(resps[1].data.offset).toEqual(1);
+  expect(resps[2].data.offset).toEqual(2);
   done();
 });
 
@@ -243,18 +239,14 @@ test('API `all` calls on partials should generate requests until no more results
 
   const pd = api({token: 'someToken1234567890'});
 
-  const datum = [];
-  for await (const resp of pd.all({
+  const resps = await pd.all({
     res: '/incidents',
     data: {limit: 1},
-  })) {
-    datum.push(resp.data);
-  }
+  });
 
-  expect(datum.length).toEqual(3);
-  expect(datum[0].offset).toEqual(0);
-  expect(datum[1].offset).toEqual(1);
-  expect(datum[2].offset).toEqual(2);
-
+  expect(resps.length).toEqual(3);
+  expect(resps[0].data.offset).toEqual(0);
+  expect(resps[1].data.offset).toEqual(1);
+  expect(resps[2].data.offset).toEqual(2);
   done();
 });

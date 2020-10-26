@@ -39,13 +39,14 @@ function api(params) {
     return apiRequest(config);
 }
 exports.api = api;
-async function* all(params) {
+async function all(params) {
     let resp = await api(params);
-    yield resp;
+    const resps = [await resp];
     while (resp.next) {
         resp = await resp.next();
-        yield resp;
+        resps.push(resp);
     }
+    return resps;
 }
 exports.all = all;
 async function apiRequest(config) {

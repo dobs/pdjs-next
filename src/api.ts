@@ -97,15 +97,19 @@ export function api(params: any): APIPromise | Partial {
   return apiRequest(config);
 }
 
-export async function* all(params: ResourceParams | URLParams) {
+export async function all(
+  params: ResourceParams | URLParams
+): Promise<APIResponse[]> {
   let resp: APIResponse = await api(params);
 
-  yield resp;
+  const resps = [await resp];
 
   while (resp.next) {
     resp = await resp.next();
-    yield resp;
+    resps.push(resp);
   }
+
+  return resps;
 }
 
 async function apiRequest(config: AxiosRequestConfig): APIPromise {

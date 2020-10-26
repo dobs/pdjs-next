@@ -32,4 +32,4 @@ export interface APIResponse extends AxiosResponse<any> {
 }
 export declare function api(params: ResourceParams | URLParams): APIPromise;
 export declare function api(params: BaseParams): Partial;
-export declare function all(params: ResourceParams | URLParams): AsyncGenerator<APIResponse, void, unknown>;
+export declare function all(params: ResourceParams | URLParams): Promise<APIResponse[]>;
