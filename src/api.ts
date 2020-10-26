@@ -101,8 +101,7 @@ export async function all(
   params: ResourceParams | URLParams
 ): Promise<APIResponse[]> {
   let resp: APIResponse = await api(params);
-
-  const resps = [await resp];
+  const resps: APIResponse[] = [resp];
 
   while (resp.next) {
     resp = await resp.next();
