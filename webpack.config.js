@@ -1,28 +1,23 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
   entry: './src/index.ts',
   output: {
     filename: 'pdjs.js',
     library: 'PagerDuty',
     path: path.resolve(__dirname, 'dist'),
   },
+  entry: './src/index.ts',
   module: {
     rules: [
       {
-        test: /\.(ts|js)x?$/,
+        test: /\.tsx?$/,
+        use: 'ts-loader',
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
-          },
-        },
       },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.json'],
+    extensions: [ '.tsx', '.ts', '.js' ],
   },
 };
