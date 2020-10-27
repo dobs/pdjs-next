@@ -1,5 +1,4 @@
 import {AxiosResponse} from 'axios';
-import produce from 'immer';
 import {request, CommonParams} from './common';
 
 export type Action = 'trigger' | 'acknowledge' | 'resolve';
@@ -92,16 +91,31 @@ function isEventsV1(params: EventParams): boolean {
   return (params.data as EventPayloadV1).service_key !== undefined;
 }
 
-const shorthand = (action: Action) => (params: EventParams): EventPromise =>
-  event(
-    produce(params, draft => {
-      if ('event_type' in draft.data) {
-        draft.data.event_type = action;
-      } else if ('event_action' in draft.data) {
-        draft.data.event_action = action;
-      }
-    })
-  );
+function isEventsV2(params: EventParams): boolean {
+  return (params.data as EventPayloadV2).routing_key !== undefined;
+}
+
+const shorthand = (action: Action) => (
+  params: EventParams
+): EventPromise | Promise<any> => {
+  let typeField;
+
+  if (isEventsV1(params)) {
+    typeField = 'event_type';
+  } else if (isEventsV2(params)) {
+    typeField = 'event_action';
+  } else {
+    return Promise.reject('Unrecognized event type.');
+  }
+
+  return event({
+    ...params,
+    data: {
+      ...params.data,
+      [typeField]: action,
+    },
+  });
+};
 
 export const trigger = shorthand('trigger');
 export const acknowledge = shorthand('acknowledge');

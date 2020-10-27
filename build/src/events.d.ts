@@ -57,6 +57,6 @@ export interface ChangeParams extends CommonParams {
 }
 export declare function event(params: EventParams): EventPromise;
 export declare function change(params: ChangeParams): EventPromise;
-export declare const trigger: (params: EventParams) => EventPromise;
-export declare const acknowledge: (params: EventParams) => EventPromise;
-export declare const resolve: (params: EventParams) => EventPromise;
+export declare const trigger: (params: EventParams) => EventPromise | Promise<any>;
+export declare const acknowledge: (params: EventParams) => EventPromise | Promise<any>;
+export declare const resolve: (params: EventParams) => EventPromise | Promise<any>;

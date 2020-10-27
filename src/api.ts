@@ -1,5 +1,4 @@
 import {AxiosRequestConfig, AxiosResponse, Method} from 'axios';
-import produce from 'immer';
 import {request, CommonParams} from './common';
 
 export interface ShorthandFunc {
@@ -119,12 +118,15 @@ function apiRequest(config: AxiosRequestConfig): APIPromise {
 
     if (data?.more && typeof data.offset !== undefined && data.limit) {
       // TODO: Support cursor-based pagination.
-      const nextConfig = produce(config, draft => {
-        draft.params.limit = data.limit;
-        draft.params.offset = data.limit + data.offset;
-      });
-
-      resp.next = () => apiRequest(nextConfig);
+      resp.next = () =>
+        apiRequest({
+          ...config,
+          params: {
+            ...config.params,
+            limit: data.limit,
+            offset: data.limit + data.offset,
+          },
+        });
     }
 
     return resp;

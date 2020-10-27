@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.all = exports.api = void 0;
-const immer_1 = require("immer");
 const common_1 = require("./common");
 function api(params) {
     var _a, _b, _c;
@@ -55,11 +54,14 @@ function apiRequest(config) {
         const data = resp.data;
         if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
             // TODO: Support cursor-based pagination.
-            const nextConfig = immer_1.default(config, draft => {
-                draft.params.limit = data.limit;
-                draft.params.offset = data.limit + data.offset;
+            resp.next = () => apiRequest({
+                ...config,
+                params: {
+                    ...config.params,
+                    limit: data.limit,
+                    offset: data.limit + data.offset,
+                },
             });
-            resp.next = () => apiRequest(nextConfig);
         }
         return resp;
     });
