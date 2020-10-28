@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.request = void 0;
+/* NODE-ONLY-START */
 const cross_fetch_1 = require("cross-fetch");
+/* NODE-ONLY-END */
 const browser_or_node_1 = require("browser-or-node");
 const VERSION = '0.0.1';
-const USER_AGENT = `pdjs-next/${VERSION} (${process.version}/${process.platform})`;
 // TODO: Retries.
 // TODO: Backoff.
 function request(url, init = {}) {
@@ -26,7 +27,7 @@ function userAgentHeader() {
     if (browser_or_node_1.isBrowser)
         return {};
     return {
-        'User-Agent': USER_AGENT,
+        'User-Agent': `pdjs-next/${VERSION} (${process.version}/${process.platform})`,
     };
 }
 function applyParams(url, params) {
@@ -46,7 +47,7 @@ function applyTimeout(init, timeout) {
     setTimeout(() => controller.abort(), timeout);
     return {
         ...init,
-        signal: controller.signal
+        signal: controller.signal,
     };
 }
 //# sourceMappingURL=common.js.map

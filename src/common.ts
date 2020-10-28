@@ -1,10 +1,9 @@
-
+/* NODE-ONLY-START */
 import fetch, {Headers} from 'cross-fetch';
-
+/* NODE-ONLY-END */
 import {isBrowser} from 'browser-or-node';
 
 const VERSION = '0.0.1';
-const USER_AGENT = `pdjs-next/${VERSION} (${process.version}/${process.platform})`;
 
 export interface CustomInit extends RequestInit {
   params?: Record<string, string>;
@@ -39,7 +38,7 @@ function userAgentHeader(): object {
   if (isBrowser) return {};
 
   return {
-    'User-Agent': USER_AGENT,
+    'User-Agent': `pdjs-next/${VERSION} (${process.version}/${process.platform})`,
   };
 }
 
@@ -64,6 +63,6 @@ function applyTimeout(init: CustomInit, timeout?: number): CustomInit {
 
   return {
     ...init,
-    signal: controller.signal
-  }
+    signal: controller.signal,
+  };
 }

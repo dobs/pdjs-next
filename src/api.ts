@@ -96,7 +96,10 @@ export function api(params: any): APIPromise | Partial {
     config.body = JSON.stringify(data);
   }
 
-  return apiRequest(url ?? `https://${server}/${res.replace(/\/+/, '')}`, config);
+  return apiRequest(
+    url ?? `https://${server}/${res.replace(/\/+/, '')}`,
+    config
+  );
 }
 
 export function all(
@@ -116,25 +119,29 @@ function allInner(resps: APIResponse[]): Promise<APIResponse[]> {
 }
 
 function apiRequest(url: string, options: CustomInit): APIPromise {
-  return request(url, options).then((resp: Response): APIPromise => {
-    let apiResp = resp as APIResponse;
+  return request(url, options).then(
+    (resp: Response): APIPromise => {
+      let apiResp = resp as APIResponse;
 
-    return resp.json().then((data): APIResponse => {
-      if (data?.more && typeof data.offset !== undefined && data.limit) {
-        // TODO: Support cursor-based pagination.
-        apiResp.next = () =>
-          apiRequest(url, {
-            ...options,
-            params: {
-              ...options.params,
-              limit: data.limit,
-              offset: data.limit + data.offset,
-            },
-          });
-      }
+      return resp.json().then(
+        (data): APIResponse => {
+          if (data?.more && typeof data.offset !== undefined && data.limit) {
+            // TODO: Support cursor-based pagination.
+            apiResp.next = () =>
+              apiRequest(url, {
+                ...options,
+                params: {
+                  ...options.params,
+                  limit: data.limit,
+                  offset: data.limit + data.offset,
+                },
+              });
+          }
 
-      apiResp.data = data
-      return apiResp
-    })
-  });
+          apiResp.data = data;
+          return apiResp;
+        }
+      );
+    }
+  );
 }

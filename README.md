@@ -122,24 +122,18 @@ event({
 
 ### Browser
 
-A single browser-ready script file is available in [dist/pdjs.js](dist/pdjs.js). By copying that file to your project and referencing it by, for example:
+Two browser-ready scripts are provided:
+
+- [dist/pdjs.js](dist/pdjs.js): For browsers supporting `fetch`.
+- [dist/pdjs-legacy.js](dist/pdjs-legacy.js): For older browsers requiring a `fetch` polyfill -- mostly IE 11.
+
+Either of these files can be used by copying them into your project and including them directly, with all functions namespaced `PagerDuty`:
 
 ```html
 <script src="pdjs.js"></script>
-```
-
-You'll then be able to access all functionality under the `PagerDuty` object:
-
-```html
 <script>
   PagerDuty.api({token: 'someToken1234567890', res: '/incidents'})
     .then(response => console.log(response.data))
     .catch(console.error);
 </script>
 ```
-
-### Advanced
-
-`pdjs-next` leverages `axios` for HTTP handling.
-
-For more complex usage REST and Events API calls accept and merge in all of `AxiosRequestConfig`'s attributes. They also return `AxiosResponse`s wrapped in `Promises`. For more details on using `axios`, see its documentation: https://github.com/axios/axios
