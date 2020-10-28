@@ -1,5 +1,4 @@
-import produce from 'immer';
-import {fetch, CustomInit} from './common';
+import {request, CustomInit} from './common';
 
 export interface ShorthandFunc {
   (res: string, params?: APIParams): APIPromise;
@@ -97,36 +96,45 @@ export function api(params: any): APIPromise | Partial {
     config.body = JSON.stringify(data);
   }
 
-  return apiFetch(url ?? `https://${server}/${res.replace(/\/+/, '')}`, config);
+  return apiRequest(url ?? `https://${server}/${res.replace(/\/+/, '')}`, config);
 }
 
-export async function* all(params: ResourceParams | URLParams) {
-  let resp: APIResponse = await api(params);
-
-  yield resp;
-
-  while (resp.next) {
-    resp = await resp.next();
-    yield resp;
-  }
+export function all(
+  params: ResourceParams | URLParams
+): Promise<APIResponse[]> {
+  return api(params).then(resp => allInner([resp]));
 }
 
-async function apiFetch(url: string, options: CustomInit): APIPromise {
-  const resp = (await fetch(url, options)) as APIResponse;
-  const data = await resp.json();
+function allInner(resps: APIResponse[]): Promise<APIResponse[]> {
+  const resp = resps[resps.length - 1];
 
-  if (data?.more && typeof data.offset !== undefined && data.limit) {
-    // TODO: Support cursor-based pagination.
-    const nextConfig = produce(options, (draft: CustomInit) => {
-      draft.params = options.params || {};
-      draft.params.limit = data.limit;
-      draft.params.offset = data.limit + data.offset;
-    });
-
-    resp.next = () => apiFetch(url, nextConfig);
+  if (!resp.next) {
+    return Promise.resolve(resps);
   }
 
-  resp.data = data;
+  return resp.next().then(resp => allInner(resps.concat([resp])));
+}
 
-  return resp;
+function apiRequest(url: string, options: CustomInit): APIPromise {
+  return request(url, options).then((resp: Response): APIPromise => {
+    let apiResp = resp as APIResponse;
+
+    return resp.json().then((data): APIResponse => {
+      if (data?.more && typeof data.offset !== undefined && data.limit) {
+        // TODO: Support cursor-based pagination.
+        apiResp.next = () =>
+          apiRequest(url, {
+            ...options,
+            params: {
+              ...options.params,
+              limit: data.limit,
+              offset: data.limit + data.offset,
+            },
+          });
+      }
+
+      apiResp.data = data
+      return apiResp
+    })
+  });
 }

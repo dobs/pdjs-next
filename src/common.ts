@@ -1,7 +1,7 @@
-import crossFetch, {Headers} from 'cross-fetch';
+
+import fetch, {Headers} from 'cross-fetch';
 
 import {isBrowser} from 'browser-or-node';
-import produce from 'immer';
 
 const VERSION = '0.0.1';
 const USER_AGENT = `pdjs-next/${VERSION} (${process.version}/${process.platform})`;
@@ -14,7 +14,7 @@ export interface CustomInit extends RequestInit {
 
 // TODO: Retries.
 // TODO: Backoff.
-export function fetch(
+export function request(
   url: string | URL,
   init: CustomInit = {}
 ): Promise<Response> {
@@ -25,7 +25,7 @@ export function fetch(
   url = applyParams(url, params);
   init = applyTimeout(init, timeout);
 
-  return crossFetch(url.toString(), {
+  return fetch(url.toString(), {
     ...initRest,
     headers: new Headers({
       'Content-Type': 'application/json; charset=utf-8',
@@ -62,7 +62,8 @@ function applyTimeout(init: CustomInit, timeout?: number): CustomInit {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), timeout);
 
-  return produce(init, draft => {
-    draft.signal = controller.signal;
-  });
+  return {
+    ...init,
+    signal: controller.signal
+  }
 }

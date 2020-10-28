@@ -61,16 +61,18 @@ pd({
 }).then(...)
 ```
 
-There's also an async `all` generator that attempts to fetch all pages for a given endpoint and set of parameters.
+There's also an async `all` that attempts to fetch all pages for a given endpoint and set of parameters.
 
 ```javascript
 import {all} from 'pdjs-next';
 
 // List every API-accessible incident.
-for await (const response of all({
+const responses = await all({
   token: 'someToken1234567890',
   res: '/incidents',
-})) {
+});
+
+for (response of responses) {
   console.log(response.data);
 }
 ```
