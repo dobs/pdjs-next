@@ -18,11 +18,10 @@ function api(params) {
         partial.all = (params) => all(params);
         return partial;
     }
-    const { res, server = 'api.pagerduty.com', token, version = 2, ...rest } = params;
+    const { res, server = 'api.pagerduty.com', token, url, version = 2, data, ...rest } = params;
+    // TODO: url vs. res + baseurl handling.
     const config = {
         method: 'GET',
-        url: rest.url ? rest.url : res,
-        baseURL: rest.url ? undefined : `https://${server}/`,
         ...rest,
         headers: {
             Accept: `application/vnd.pagerduty+json;version=${version}`,
@@ -32,10 +31,12 @@ function api(params) {
     };
     // Allow `data` for `params` for requests without bodies.
     if (!['PUT', 'POST', 'DELETE', 'PATCH'].includes((_b = (_a = config.method) === null || _a === void 0 ? void 0 : _a.toUpperCase()) !== null && _b !== void 0 ? _b : 'GET')) {
-        config.params = (_c = config.params) !== null && _c !== void 0 ? _c : config.data;
-        delete config.data;
+        config.params = (_c = config.params) !== null && _c !== void 0 ? _c : data;
     }
-    return apiRequest(config);
+    else {
+        config.body = JSON.stringify(data);
+    }
+    return apiRequest(url !== null && url !== void 0 ? url : `https://${server}/${res.replace(/\/+/, '')}`, config);
 }
 exports.api = api;
 function all(params) {
@@ -49,21 +50,24 @@ function allInner(resps) {
     }
     return resp.next().then(resp => allInner(resps.concat([resp])));
 }
-function apiRequest(config) {
-    return common_1.request(config).then((resp) => {
-        const data = resp.data;
-        if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
-            // TODO: Support cursor-based pagination.
-            resp.next = () => apiRequest({
-                ...config,
-                params: {
-                    ...config.params,
-                    limit: data.limit,
-                    offset: data.limit + data.offset,
-                },
-            });
-        }
-        return resp;
+function apiRequest(url, options) {
+    return common_1.request(url, options).then((resp) => {
+        let apiResp = resp;
+        return resp.json().then((data) => {
+            if ((data === null || data === void 0 ? void 0 : data.more) && typeof data.offset !== undefined && data.limit) {
+                // TODO: Support cursor-based pagination.
+                apiResp.next = () => apiRequest(url, {
+                    ...options,
+                    params: {
+                        ...options.params,
+                        limit: data.limit,
+                        offset: data.limit + data.offset,
+                    },
+                });
+            }
+            apiResp.data = data;
+            return apiResp;
+        });
     });
 }
 //# sourceMappingURL=api.js.map

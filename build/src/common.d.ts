@@ -1,5 +1,6 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-export interface CommonParams extends AxiosRequestConfig {
+export interface CustomInit extends RequestInit {
+    params?: Record<string, string>;
     server?: string;
+    timeout?: number;
 }
-export declare function request(config: AxiosRequestConfig): Promise<AxiosResponse<any>>;
+export declare function request(url: string | URL, init?: CustomInit): Promise<Response>;

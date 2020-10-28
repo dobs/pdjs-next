@@ -1,5 +1,4 @@
-import { AxiosResponse } from 'axios';
-import { CommonParams } from './common';
+import { CustomInit } from './common';
 export interface ShorthandFunc {
     (res: string, params?: APIParams): APIPromise;
 }
@@ -14,7 +13,8 @@ export interface Partial {
     delete: ShorthandFunc;
     all: (params: ResourceParams | URLParams) => any;
 }
-export interface BaseParams extends CommonParams {
+export interface BaseParams extends CustomInit {
+    data?: object;
     token?: string;
     server?: string;
     version?: number;
@@ -27,7 +27,8 @@ export interface URLParams extends BaseParams {
 }
 export declare type APIParams = BaseParams | ResourceParams | URLParams;
 export declare type APIPromise = Promise<APIResponse>;
-export interface APIResponse extends AxiosResponse<any> {
+export interface APIResponse extends Response {
+    data: any;
     next?: () => APIPromise;
 }
 export declare function api(params: ResourceParams | URLParams): APIPromise;

@@ -1,6 +1,6 @@
 const path = require('path');
 
-module.exports = {
+const baseConfig = {
   entry: './src/index.ts',
   devtool: 'source-map',
   output: {
@@ -22,3 +22,36 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
 };
+
+module.exports = [
+  {
+    ...baseConfig,
+    output: {
+      ...baseConfig.output,
+      filename: 'pdjs-legacy.js',
+    },
+  },
+  {
+    ...baseConfig,
+    module: {
+      ...baseConfig.module,
+      rules: [
+        ...baseConfig.module.rules,
+        {
+          test: /\.[jt]sx?$/,
+          enforce: 'pre',
+          exclude: /(node_modules|bower_components|\.spec\.js)/,
+          use: [
+            {
+              loader: 'webpack-strip-block',
+              options: {
+                start: 'NODE-ONLY-START',
+                end: 'NODE-ONLY-END',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
+];

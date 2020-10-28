@@ -1,7 +1,9 @@
-import { AxiosResponse } from 'axios';
-import { CommonParams } from './common';
+import { CustomInit } from './common';
 export declare type Action = 'trigger' | 'acknowledge' | 'resolve';
-export declare type EventPromise = Promise<AxiosResponse<any>>;
+export declare type EventPromise = Promise<EventResponse>;
+export interface EventResponse extends Response {
+    data: any;
+}
 export interface EventPayloadV1 {
     service_key: string;
     incident_key: string;
@@ -39,7 +41,7 @@ export interface EventPayloadV2 {
     images?: Array<Image>;
     links?: Array<Link>;
 }
-export interface EventParams extends CommonParams {
+export interface EventParams extends CustomInit {
     data: EventPayloadV1 | EventPayloadV2;
 }
 export interface ChangePayload {
@@ -52,7 +54,7 @@ export interface ChangePayload {
     };
     links: Array<Link>;
 }
-export interface ChangeParams extends CommonParams {
+export interface ChangeParams extends CustomInit {
     data: ChangePayload;
 }
 export declare function event(params: EventParams): EventPromise;
