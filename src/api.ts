@@ -1,37 +1,30 @@
 import {request, CustomInit} from './common';
 
 export interface ShorthandFunc {
-  (res: string, params?: APIParams): APIPromise;
+  (res: string, params?: APIPartialParams): APIPromise;
 }
 
-export interface Partial {
-  (params: ResourceParams | URLParams): APIPromise;
-  (params: BaseParams): Partial;
-  (params: APIParams): APIPromise | Partial;
+export interface PartialCall {
+  (params: APIParams): APIPromise;
+  (params: APIPartialParams): PartialCall;
   get: ShorthandFunc;
   post: ShorthandFunc;
   put: ShorthandFunc;
   patch: ShorthandFunc;
   delete: ShorthandFunc;
-  all: (params: ResourceParams | URLParams) => any;
+  all: (params: APIParams) => any;
 }
 
-export interface BaseParams extends CustomInit {
+export interface APIPartialParams extends CustomInit {
+  res?: string;
+  url?: string;
   data?: object;
   token?: string;
   server?: string;
   version?: number;
 }
 
-export interface ResourceParams extends BaseParams {
-  res: string;
-}
-
-export interface URLParams extends BaseParams {
-  url: string;
-}
-
-export type APIParams = BaseParams | ResourceParams | URLParams;
+export type APIParams = APIPartialParams & ({res: string} | {url: string});
 
 export type APIPromise = Promise<APIResponse>;
 
@@ -40,28 +33,13 @@ export interface APIResponse extends Response {
   next?: () => APIPromise;
 }
 
-export function api(params: ResourceParams | URLParams): APIPromise;
-export function api(params: BaseParams): Partial;
-export function api(params: any): APIPromise | Partial {
+export function api(params: APIParams): APIPromise;
+export function api(params: APIPartialParams): PartialCall;
+export function api(params: APIPartialParams): APIPromise | PartialCall {
   // If the params don't include `res` or `url` treat it as a partial
   // application.
   if (!params.res && !params.url) {
-    const partialParams = params;
-    const partial = ((params: APIParams) =>
-      api({...partialParams, ...params})) as Partial;
-
-    const shorthand = (method: string) => (res: string, params?: APIParams) =>
-      api({res, method, ...partialParams, ...params});
-
-    partial.get = shorthand('get');
-    partial.post = shorthand('post');
-    partial.put = shorthand('put');
-    partial.patch = shorthand('patch');
-    partial.delete = shorthand('delete');
-
-    partial.all = (params: ResourceParams | URLParams) => all(params);
-
-    return partial;
+    return partialCall(params);
   }
 
   const {
@@ -72,9 +50,8 @@ export function api(params: any): APIPromise | Partial {
     version = 2,
     data,
     ...rest
-  } = params;
+  } = params as any;
 
-  // TODO: url vs. res + baseurl handling.
   const config: CustomInit = {
     method: 'GET',
     ...rest,
@@ -86,26 +63,20 @@ export function api(params: any): APIPromise | Partial {
   };
 
   // Allow `data` for `params` for requests without bodies.
-  if (
-    !['PUT', 'POST', 'DELETE', 'PATCH'].includes(
-      config.method?.toUpperCase() ?? 'GET'
-    )
-  ) {
+  if (isReadonlyRequest(config.method!)) {
     config.params = config.params ?? data;
   } else {
     config.body = JSON.stringify(data);
   }
 
   return apiRequest(
-    url ?? `https://${server}/${res.replace(/\/+/, '')}`,
+    url ?? `https://${server}/${res.replace(/^\/+/, '')}`,
     config
   );
 }
 
-export function all(
-  params: ResourceParams | URLParams
-): Promise<APIResponse[]> {
-  return api(params).then(resp => allInner([resp]));
+export function all(params: APIParams): Promise<APIResponse[]> {
+  return (api(params) as APIPromise).then(resp => allInner([resp]));
 }
 
 function allInner(resps: APIResponse[]): Promise<APIResponse[]> {
@@ -125,23 +96,56 @@ function apiRequest(url: string, options: CustomInit): APIPromise {
 
       return resp.json().then(
         (data): APIResponse => {
-          if (data?.more && typeof data.offset !== undefined && data.limit) {
-            // TODO: Support cursor-based pagination.
-            apiResp.next = () =>
-              apiRequest(url, {
-                ...options,
-                params: {
-                  ...options.params,
-                  limit: data.limit,
-                  offset: data.limit + data.offset,
-                },
-              });
-          }
-
+          apiResp.next = nextFunc(url, options, data);
           apiResp.data = data;
           return apiResp;
         }
       );
     }
   );
+}
+
+function isReadonlyRequest(method: string) {
+  return !['PUT', 'POST', 'DELETE', 'PATCH'].includes(
+    method.toUpperCase() ?? 'GET'
+  );
+}
+
+// TODO: Support cursor-based pagination.
+function nextFunc(url: string, options: CustomInit, data: any) {
+  if (data?.more && typeof data.offset !== undefined && data.limit) {
+    return () =>
+      apiRequest(url, {
+        ...options,
+        params: {
+          ...options.params,
+          limit: data.limit,
+          offset: data.limit + data.offset,
+        },
+      });
+  }
+
+  return undefined;
+}
+
+function partialCall(params: APIPartialParams) {
+  const partialParams = params;
+  const partial = ((params: APIPartialParams) =>
+    api({...partialParams, ...params})) as PartialCall;
+
+  const shorthand = (method: string) => (
+    res: string,
+    params?: APIPartialParams
+  ): APIPromise =>
+    api({res, method, ...partialParams, ...params}) as APIPromise;
+
+  partial.get = shorthand('get');
+  partial.post = shorthand('post');
+  partial.put = shorthand('put');
+  partial.patch = shorthand('patch');
+  partial.delete = shorthand('delete');
+
+  partial.all = (params: APIParams) => all(params);
+
+  return partial;
 }
