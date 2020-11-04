@@ -124,8 +124,8 @@ event({
 
 Two browser-ready scripts are provided:
 
-- [dist/pdjs.js](dist/pdjs.js): For browsers supporting `fetch`.
-- [dist/pdjs-legacy.js](dist/pdjs-legacy.js): For older browsers requiring a `fetch` polyfill -- mostly IE 11.
+- [dist/pdjs.js](https://raw.githubusercontent.com/dobs/pdjs-next/main/dist/pdjs.js): For browsers supporting `fetch`.
+- [dist/pdjs-legacy.js](https://raw.githubusercontent.com/dobs/pdjs-next/main/dist/pdjs-legacy.js): For older browsers requiring a `fetch` polyfill -- mostly IE 11.
 
 Either of these files can be used by copying them into your project and including them directly, with all functions namespaced `PagerDuty`:
 
