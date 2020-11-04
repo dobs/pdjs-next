@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.request = void 0;
 /* NODE-ONLY-START */
 const cross_fetch_1 = require("cross-fetch");
-/* NODE-ONLY-END */
 const browser_or_node_1 = require("browser-or-node");
+/* NODE-ONLY-END */
 const VERSION = '0.0.1';
 // TODO: Retries.
 // TODO: Backoff.
@@ -17,7 +17,9 @@ function request(url, init = {}) {
         ...initRest,
         headers: new cross_fetch_1.Headers({
             'Content-Type': 'application/json; charset=utf-8',
+            /* NODE-ONLY-START */
             ...userAgentHeader(),
+            /* NODE-ONLY-END */
             ...initRest.headers,
         }),
     });

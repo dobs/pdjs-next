@@ -1,7 +1,7 @@
 /* NODE-ONLY-START */
 import fetch, {Headers} from 'cross-fetch';
-/* NODE-ONLY-END */
 import {isBrowser} from 'browser-or-node';
+/* NODE-ONLY-END */
 
 const VERSION = '0.0.1';
 
@@ -28,7 +28,9 @@ export function request(
     ...initRest,
     headers: new Headers({
       'Content-Type': 'application/json; charset=utf-8',
+      /* NODE-ONLY-START */
       ...userAgentHeader(),
+      /* NODE-ONLY-END */
       ...initRest.headers,
     }),
   });
