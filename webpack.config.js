@@ -13,9 +13,9 @@ const baseConfig = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
         exclude: /node_modules/,
-      },
+        loader: 'babel-loader'
+      }  
     ],
   },
   resolve: {
@@ -40,7 +40,7 @@ module.exports = [
         {
           test: /\.[jt]sx?$/,
           enforce: 'pre',
-          exclude: /(node_modules|bower_components|\.spec\.js)/,
+          exclude: /(node_modules|\.spec\.js)/,
           use: [
             {
               loader: 'webpack-strip-block',

@@ -18,18 +18,22 @@
     "fix": "gts fix"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-typescript": "^7.12.1",
     "@types/browser-or-node": "^1.2.0",
     "@types/jest": "^26.0.14",
     "@types/moxios": "^0.4.9",
     "@types/node": "^13.11.1",
     "@types/sinon": "^9.0.8",
+    "babel-loader": "^8.1.0",
     "gts": "^3.0.0",
     "jest": "^26.5.2",
     "nock": "^13.0.4",
     "ts-jest": "^26.4.1",
     "ts-loader": "^8.0.6",
     "typescript": "^4.0.3",
-    "webpack": "^5.2.0",
+    "webpack": "^5.4.0",
     "webpack-cli": "^4.1.0",
     "webpack-strip-block": "^0.3.0"
   },
