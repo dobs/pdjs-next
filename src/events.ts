@@ -1,4 +1,4 @@
-import {request, CustomInit} from './common';
+import {request, RequestOptions} from './common';
 
 export type Action = 'trigger' | 'acknowledge' | 'resolve';
 
@@ -50,8 +50,9 @@ export interface EventPayloadV2 {
   links?: Array<Link>;
 }
 
-export interface EventParams extends CustomInit {
+export interface EventParams extends RequestOptions {
   data: EventPayloadV1 | EventPayloadV2;
+  server?: string;
 }
 
 export interface ChangePayload {
@@ -64,8 +65,9 @@ export interface ChangePayload {
   };
   links: Array<Link>;
 }
-export interface ChangeParams extends CustomInit {
+export interface ChangeParams extends RequestOptions {
   data: ChangePayload;
+  server?: string;
 }
 
 export function event(params: EventParams): EventPromise {
@@ -97,22 +99,8 @@ function isEventsV1(params: EventParams): boolean {
   return (params.data as EventPayloadV1).service_key !== undefined;
 }
 
-function isEventsV2(params: EventParams): boolean {
-  return (params.data as EventPayloadV2).routing_key !== undefined;
-}
-
-const shorthand = (action: Action) => (
-  params: EventParams
-): EventPromise | Promise<any> => {
-  let typeField;
-
-  if (isEventsV1(params)) {
-    typeField = 'event_type';
-  } else if (isEventsV2(params)) {
-    typeField = 'event_action';
-  } else {
-    return Promise.reject('Unrecognized event type.');
-  }
+const shorthand = (action: Action) => (params: EventParams): EventPromise => {
+  const typeField = isEventsV1(params) ? 'event_type' : 'event_action';
 
   return event({
     ...params,
@@ -127,7 +115,7 @@ export const trigger = shorthand('trigger');
 export const acknowledge = shorthand('acknowledge');
 export const resolve = shorthand('resolve');
 
-async function eventFetch(url: string, options: CustomInit): EventPromise {
+async function eventFetch(url: string, options: RequestOptions): EventPromise {
   const resp = (await request(url, options)) as EventResponse;
   resp.data = await resp.json();
   return resp;

@@ -5,9 +5,8 @@ import {isBrowser} from 'browser-or-node';
 
 const VERSION = '0.0.1';
 
-export interface CustomInit extends RequestInit {
+export interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
-  server?: string;
   timeout?: number;
 }
 
@@ -15,23 +14,23 @@ export interface CustomInit extends RequestInit {
 // TODO: Backoff.
 export function request(
   url: string | URL,
-  init: CustomInit = {}
+  options: RequestOptions = {}
 ): Promise<Response> {
-  const {params, timeout, ...initRest} = init;
+  const {params, timeout, ...rest} = options;
 
   url = new URL(url.toString());
 
   url = applyParams(url, params);
-  init = applyTimeout(init, timeout);
+  options = applyTimeout(options, timeout);
 
   return fetch(url.toString(), {
-    ...initRest,
+    ...rest,
     headers: new Headers({
       'Content-Type': 'application/json; charset=utf-8',
       /* NODE-ONLY-START */
       ...userAgentHeader(),
       /* NODE-ONLY-END */
-      ...initRest.headers,
+      ...rest.headers,
     }),
   });
 }
@@ -57,7 +56,7 @@ function applyParams(url: URL, params?: Record<string, string>): URL {
   return url;
 }
 
-function applyTimeout(init: CustomInit, timeout?: number): CustomInit {
+function applyTimeout(init: RequestOptions, timeout?: number): RequestOptions {
   if (!timeout) return init;
 
   const controller = new AbortController();

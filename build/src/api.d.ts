@@ -1,26 +1,25 @@
-import { CustomInit } from './common';
-export interface ShorthandFunc {
-    (res: string, params?: APIPartialParams): APIPromise;
+import { RequestOptions } from './common';
+export interface ShorthandCall {
+    (res: string, params?: Partial<APIParams>): APIPromise;
 }
 export interface PartialCall {
     (params: APIParams): APIPromise;
-    (params: APIPartialParams): PartialCall;
-    get: ShorthandFunc;
-    post: ShorthandFunc;
-    put: ShorthandFunc;
-    patch: ShorthandFunc;
-    delete: ShorthandFunc;
-    all: (params: APIParams) => any;
+    (params: Partial<APIParams>): PartialCall;
+    get: ShorthandCall;
+    post: ShorthandCall;
+    put: ShorthandCall;
+    patch: ShorthandCall;
+    delete: ShorthandCall;
+    all: (params: APIParams) => Promise<APIResponse[]>;
 }
-export interface APIPartialParams extends CustomInit {
+export declare type APIParams = RequestOptions & {
     res?: string;
     url?: string;
     data?: object;
     token?: string;
     server?: string;
     version?: number;
-}
-export declare type APIParams = APIPartialParams & ({
+} & ({
     res: string;
 } | {
     url: string;
@@ -31,5 +30,5 @@ export interface APIResponse extends Response {
     next?: () => APIPromise;
 }
 export declare function api(params: APIParams): APIPromise;
-export declare function api(params: APIPartialParams): PartialCall;
+export declare function api(params: Partial<APIParams>): PartialCall;
 export declare function all(params: APIParams): Promise<APIResponse[]>;

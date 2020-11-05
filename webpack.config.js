@@ -8,14 +8,13 @@ const baseConfig = {
     library: 'PagerDuty',
     path: path.resolve(__dirname, 'dist'),
   },
-  entry: './src/index.ts',
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
-        loader: 'babel-loader'
-      }  
+        loader: 'babel-loader',
+      },
     ],
   },
   resolve: {

@@ -1,6 +1,5 @@
-export interface CustomInit extends RequestInit {
+export interface RequestOptions extends RequestInit {
     params?: Record<string, string>;
-    server?: string;
     timeout?: number;
 }
-export declare function request(url: string | URL, init?: CustomInit): Promise<Response>;
+export declare function request(url: string | URL, options?: RequestOptions): Promise<Response>;

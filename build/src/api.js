@@ -20,7 +20,7 @@ function api(params) {
         },
     };
     // Allow `data` for `params` for requests without bodies.
-    if (isReadonlyRequest(config.method)) {
+    if (isReadonlyRequest(config.method) && data) {
         config.params = (_a = config.params) !== null && _a !== void 0 ? _a : data;
     }
     else {
@@ -42,7 +42,7 @@ function allInner(resps) {
 }
 function apiRequest(url, options) {
     return common_1.request(url, options).then((resp) => {
-        let apiResp = resp;
+        const apiResp = resp;
         return resp.json().then((data) => {
             apiResp.next = nextFunc(url, options, data);
             apiResp.data = data;
@@ -61,8 +61,8 @@ function nextFunc(url, options, data) {
             ...options,
             params: {
                 ...options.params,
-                limit: data.limit,
-                offset: data.limit + data.offset,
+                limit: data.limit.toString(),
+                offset: (data.limit + data.offset).toString(),
             },
         });
     }

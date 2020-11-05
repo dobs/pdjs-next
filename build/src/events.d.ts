@@ -1,4 +1,4 @@
-import { CustomInit } from './common';
+import { RequestOptions } from './common';
 export declare type Action = 'trigger' | 'acknowledge' | 'resolve';
 export declare type EventPromise = Promise<EventResponse>;
 export interface EventResponse extends Response {
@@ -41,8 +41,9 @@ export interface EventPayloadV2 {
     images?: Array<Image>;
     links?: Array<Link>;
 }
-export interface EventParams extends CustomInit {
+export interface EventParams extends RequestOptions {
     data: EventPayloadV1 | EventPayloadV2;
+    server?: string;
 }
 export interface ChangePayload {
     routing_key: string;
@@ -54,11 +55,12 @@ export interface ChangePayload {
     };
     links: Array<Link>;
 }
-export interface ChangeParams extends CustomInit {
+export interface ChangeParams extends RequestOptions {
     data: ChangePayload;
+    server?: string;
 }
 export declare function event(params: EventParams): EventPromise;
 export declare function change(params: ChangeParams): EventPromise;
-export declare const trigger: (params: EventParams) => EventPromise | Promise<any>;
-export declare const acknowledge: (params: EventParams) => EventPromise | Promise<any>;
-export declare const resolve: (params: EventParams) => EventPromise | Promise<any>;
+export declare const trigger: (params: EventParams) => EventPromise;
+export declare const acknowledge: (params: EventParams) => EventPromise;
+export declare const resolve: (params: EventParams) => EventPromise;

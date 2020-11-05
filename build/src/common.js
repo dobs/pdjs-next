@@ -8,19 +8,19 @@ const browser_or_node_1 = require("browser-or-node");
 const VERSION = '0.0.1';
 // TODO: Retries.
 // TODO: Backoff.
-function request(url, init = {}) {
-    const { params, timeout, ...initRest } = init;
+function request(url, options = {}) {
+    const { params, timeout, ...rest } = options;
     url = new URL(url.toString());
     url = applyParams(url, params);
-    init = applyTimeout(init, timeout);
+    options = applyTimeout(options, timeout);
     return cross_fetch_1.default(url.toString(), {
-        ...initRest,
+        ...rest,
         headers: new cross_fetch_1.Headers({
             'Content-Type': 'application/json; charset=utf-8',
             /* NODE-ONLY-START */
             ...userAgentHeader(),
             /* NODE-ONLY-END */
-            ...initRest.headers,
+            ...rest.headers,
         }),
     });
 }

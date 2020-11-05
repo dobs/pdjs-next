@@ -1,30 +1,28 @@
-import {request, CustomInit} from './common';
+import {request, RequestOptions} from './common';
 
-export interface ShorthandFunc {
-  (res: string, params?: APIPartialParams): APIPromise;
+export interface ShorthandCall {
+  (res: string, params?: Partial<APIParams>): APIPromise;
 }
 
 export interface PartialCall {
   (params: APIParams): APIPromise;
-  (params: APIPartialParams): PartialCall;
-  get: ShorthandFunc;
-  post: ShorthandFunc;
-  put: ShorthandFunc;
-  patch: ShorthandFunc;
-  delete: ShorthandFunc;
-  all: (params: APIParams) => any;
+  (params: Partial<APIParams>): PartialCall;
+  get: ShorthandCall;
+  post: ShorthandCall;
+  put: ShorthandCall;
+  patch: ShorthandCall;
+  delete: ShorthandCall;
+  all: (params: APIParams) => Promise<APIResponse[]>;
 }
 
-export interface APIPartialParams extends CustomInit {
+export type APIParams = RequestOptions & {
   res?: string;
   url?: string;
   data?: object;
   token?: string;
   server?: string;
   version?: number;
-}
-
-export type APIParams = APIPartialParams & ({res: string} | {url: string});
+} & ({res: string} | {url: string});
 
 export type APIPromise = Promise<APIResponse>;
 
@@ -34,8 +32,8 @@ export interface APIResponse extends Response {
 }
 
 export function api(params: APIParams): APIPromise;
-export function api(params: APIPartialParams): PartialCall;
-export function api(params: APIPartialParams): APIPromise | PartialCall {
+export function api(params: Partial<APIParams>): PartialCall;
+export function api(params: Partial<APIParams>): APIPromise | PartialCall {
   // If the params don't include `res` or `url` treat it as a partial
   // application.
   if (!params.res && !params.url) {
@@ -50,9 +48,9 @@ export function api(params: APIPartialParams): APIPromise | PartialCall {
     version = 2,
     data,
     ...rest
-  } = params as any;
+  } = params;
 
-  const config: CustomInit = {
+  const config: RequestOptions = {
     method: 'GET',
     ...rest,
     headers: {
@@ -63,14 +61,14 @@ export function api(params: APIPartialParams): APIPromise | PartialCall {
   };
 
   // Allow `data` for `params` for requests without bodies.
-  if (isReadonlyRequest(config.method!)) {
-    config.params = config.params ?? data;
+  if (isReadonlyRequest(config.method!) && data) {
+    config.params = config.params ?? (data as Record<string, string>);
   } else {
     config.body = JSON.stringify(data);
   }
 
   return apiRequest(
-    url ?? `https://${server}/${res.replace(/^\/+/, '')}`,
+    url ?? `https://${server}/${res!.replace(/^\/+/, '')}`,
     config
   );
 }
@@ -89,10 +87,10 @@ function allInner(resps: APIResponse[]): Promise<APIResponse[]> {
   return resp.next().then(resp => allInner(resps.concat([resp])));
 }
 
-function apiRequest(url: string, options: CustomInit): APIPromise {
+function apiRequest(url: string, options: RequestOptions): APIPromise {
   return request(url, options).then(
     (resp: Response): APIPromise => {
-      let apiResp = resp as APIResponse;
+      const apiResp = resp as APIResponse;
 
       return resp.json().then(
         (data): APIResponse => {
@@ -112,15 +110,19 @@ function isReadonlyRequest(method: string) {
 }
 
 // TODO: Support cursor-based pagination.
-function nextFunc(url: string, options: CustomInit, data: any) {
+function nextFunc(
+  url: string,
+  options: RequestOptions,
+  data: {more?: boolean; offset?: number; limit?: number}
+) {
   if (data?.more && typeof data.offset !== undefined && data.limit) {
     return () =>
       apiRequest(url, {
         ...options,
         params: {
           ...options.params,
-          limit: data.limit,
-          offset: data.limit + data.offset,
+          limit: data.limit!.toString(),
+          offset: (data.limit! + data.offset!).toString(),
         },
       });
   }
@@ -128,14 +130,14 @@ function nextFunc(url: string, options: CustomInit, data: any) {
   return undefined;
 }
 
-function partialCall(params: APIPartialParams) {
+function partialCall(params: Partial<APIParams>) {
   const partialParams = params;
-  const partial = ((params: APIPartialParams) =>
+  const partial = ((params: Partial<APIParams>) =>
     api({...partialParams, ...params})) as PartialCall;
 
   const shorthand = (method: string) => (
     res: string,
-    params?: APIPartialParams
+    params?: Partial<APIParams>
   ): APIPromise =>
     api({res, method, ...partialParams, ...params}) as APIPromise;
 

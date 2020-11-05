@@ -25,20 +25,8 @@ exports.change = change;
 function isEventsV1(params) {
     return params.data.service_key !== undefined;
 }
-function isEventsV2(params) {
-    return params.data.routing_key !== undefined;
-}
 const shorthand = (action) => (params) => {
-    let typeField;
-    if (isEventsV1(params)) {
-        typeField = 'event_type';
-    }
-    else if (isEventsV2(params)) {
-        typeField = 'event_action';
-    }
-    else {
-        return Promise.reject('Unrecognized event type.');
-    }
+    const typeField = isEventsV1(params) ? 'event_type' : 'event_action';
     return event({
         ...params,
         data: {
