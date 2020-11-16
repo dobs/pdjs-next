@@ -1,5 +1,13 @@
 # README
 
+## Moved!
+
+Most of this project has been adapted back into the main [pdjs](https://github.com/PagerDuty/pdjs) project!
+
+If this project lives on it'll be as a testing ground.
+
+## About
+
 An updated version of PagerDuty's [pdjs](https://github.com/PagerDuty/pdjs), with the motivation of:
 
 - Adding support for more recent PagerDuty features, such as the Events API V2 and Change Events
